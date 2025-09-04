@@ -212,7 +212,7 @@ export function CampaignList() {
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
-                            variant="outline"
+                            variant="destructive"
                             size="sm"
                             disabled={deletingId === campaign.id}
                           >

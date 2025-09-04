@@ -4,6 +4,12 @@ import { TRPCError } from "@trpc/server"
 import { eq, desc } from "drizzle-orm"
 import { influencers, campaignInfluencers } from "@/lib/db/schema"
 
+const createInfluencerSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  followerCount: z.number().min(0, "Follower count must be positive"),
+  engagementRate: z.number().min(0, "Engagement rate must be positive").max(100, "Engagement rate cannot exceed 100%"),
+})
+
 export const influencersRouter = router({
   // Get all influencers (available to all authenticated users)
   getAll: protectedProcedure.query(async ({ ctx }) => {
@@ -79,4 +85,26 @@ export const influencersRouter = router({
       })
     }
   }),
+
+  create: protectedProcedure
+    .input(createInfluencerSchema)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const newInfluencer = await ctx.db
+          .insert(influencers)
+          .values({
+            name: input.name,
+            followerCount: input.followerCount,
+            engagementRate: input.engagementRate.toString(),
+          })
+          .returning()
+
+        return newInfluencer[0]
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create influencer",
+        })
+      }
+    }),
 })

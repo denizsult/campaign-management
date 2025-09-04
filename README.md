@@ -76,8 +76,10 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
-# Database URL for Drizzle (from Supabase Settings > Database)
-DATABASE_URL=postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgres
+# Database Password
+NEXT_SUPABASE_DB_PASSWORD="example123"
+# Drizzle ORM Configuration
+NEXT_DATABASE_URL=postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgres
 ```
 
 ### 3. Supabase Database Setup
@@ -87,7 +89,7 @@ DATABASE_URL=postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/
 2. Navigate to **Settings > Database**
 3. Copy the **Connection string** (URI format)
 4. Replace `[YOUR-PASSWORD]` with your database password
-5. Add it to your `.env.local` as `DATABASE_URL`
+5. Add it to your `.env.local` as `NEXT_DATABASE_URL`
 
 #### Apply Database Schema
 Choose one of these methods:
@@ -193,6 +195,8 @@ npm start
 ## 🗄️ Schema-Based Database Management
 
 This project uses Drizzle's **schema-first approach** instead of traditional migrations:
+
+Drizzle ORM is used for managing database schemas and migrations, providing a type-safe and flexible workflow.
 
 ### How It Works
 1. **Define schemas** in TypeScript files (`lib/db/schema/`)
