@@ -249,31 +249,13 @@ npm run db:migrate
 2. JWT tokens are automatically managed by Supabase
 3. tRPC middleware validates authentication
 4. RLS policies ensure data isolation
-
-## 🚀 Deployment
-
-### Vercel (Recommended)
-
-1. Connect your GitHub repository to Vercel
-2. Add environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
-
+ 
 ### Environment Variables for Production
 
 Ensure all environment variables are set in your deployment platform:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `DATABASE_URL`
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License.
+- `NEXT_SUPABASE_DB_PASSWORD`
+- `NEXT_DATABASE_URL`
+ 
