@@ -8,6 +8,9 @@ const handler = (req: Request) =>
     req,
     router: appRouter,
     createContext: createTRPCContext,
+    batching: {
+      enabled: true,
+    },
   })
 
 export { handler as GET, handler as POST }

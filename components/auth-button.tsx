@@ -14,7 +14,7 @@ export function AuthButton() {
   }
 
   return (
-    <Button variant="outline" onClick={handleSignOut}>
+    <Button variant="outline" className="!cursor-pointer" onClick={handleSignOut}>
       Sign Out
     </Button>
   )

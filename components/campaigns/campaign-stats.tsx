@@ -1,25 +1,40 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { trpc } from "@/lib/trpc/client"
-import { BarChart3, Calendar, DollarSign, TrendingUp } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Campaign } from "@/lib/db/schema";
+import { trpc } from "@/lib/trpc/client";
+import { BarChart3, Calendar, DollarSign, TrendingUp } from "lucide-react";
+
+const calculateStats = (campaigns?: Campaign[]) => {
+  if (!campaigns) return { total: 0, active: 0, totalBudget: 0, avgBudget: 0 };
+
+  return {
+    total: campaigns.length,
+    active: campaigns.filter((c) => {
+      const now = new Date();
+      const start = c.startDate ? new Date(c.startDate) : null;
+      const end = c.endDate ? new Date(c.endDate) : null;
+      return (!start || start <= now) && (!end || end >= now);
+    }).length,
+    totalBudget: campaigns.reduce(
+      (sum: number, campaign: Campaign) => sum + (Number(campaign.budget) || 0),
+      0
+    ),
+    avgBudget:
+      campaigns.length > 0
+        ? campaigns.reduce(
+            (sum: number, campaign: Campaign) =>
+              sum + (Number(campaign.budget) || 0),
+            0
+          ) / campaigns.length
+        : 0,
+  };
+};
 
 export function CampaignStats() {
-  const { data: campaigns } = trpc.campaigns.getAll.useQuery()
+  const { data: campaigns } = trpc.campaigns.getAll.useQuery();
 
-  const stats = campaigns
-    ? {
-        total: campaigns.length,
-        active: campaigns.filter((c) => {
-          const now = new Date()
-          const start = c.start_date ? new Date(c.start_date) : null
-          const end = c.end_date ? new Date(c.end_date) : null
-          return (!start || start <= now) && (!end || end >= now)
-        }).length,
-        totalBudget: campaigns.reduce((sum, c) => sum + (c.budget || 0), 0),
-        avgBudget: campaigns.length > 0 ? campaigns.reduce((sum, c) => sum + (c.budget || 0), 0) / campaigns.length : 0,
-      }
-    : { total: 0, active: 0, totalBudget: 0, avgBudget: 0 }
+  const stats = calculateStats(campaigns);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -27,8 +42,8 @@ export function CampaignStats() {
       currency: "USD",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
   return (
     <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
@@ -45,7 +60,9 @@ export function CampaignStats() {
 
       <Card className="hover:shadow-md transition-all duration-200">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Active Campaigns
+          </CardTitle>
           <Calendar className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -60,7 +77,9 @@ export function CampaignStats() {
           <DollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(stats.totalBudget)}</div>
+          <div className="text-2xl font-bold">
+            {formatCurrency(stats.totalBudget)}
+          </div>
           <p className="text-xs text-muted-foreground">Across all campaigns</p>
         </CardContent>
       </Card>
@@ -71,10 +90,12 @@ export function CampaignStats() {
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(stats.avgBudget)}</div>
+          <div className="text-2xl font-bold">
+            {formatCurrency(stats.avgBudget)}
+          </div>
           <p className="text-xs text-muted-foreground">Per campaign</p>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

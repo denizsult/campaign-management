@@ -71,7 +71,7 @@ export function AssignedInfluencers({ campaignId }: AssignedInfluencersProps) {
                   </div>
                   <div className="flex items-center gap-1">
                     <TrendingUp className="w-3 h-3" />
-                    <Badge variant="outline" className={getEngagementColor(influencer.engagement_rate)}>
+                    <Badge variant="outline" className={getEngagementColor(Number(influencer.engagement_rate))}>
                       {influencer.engagement_rate}%
                     </Badge>
                   </div>

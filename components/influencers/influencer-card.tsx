@@ -4,14 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Users, TrendingUp, UserPlus, UserMinus } from "lucide-react"
+import { Influencer } from "@/lib/db/schema"
 
 interface InfluencerCardProps {
-  influencer: {
-    id: string
-    name: string
-    follower_count: number
-    engagement_rate: number
-  }
+  influencer: Influencer
   isAssigned?: boolean
   onAssign?: () => void
   onUnassign?: () => void
@@ -49,14 +45,14 @@ export function InfluencerCard({ influencer, isAssigned, onAssign, onUnassign, i
             <Users className="w-4 h-4 text-muted-foreground" />
             <span className="text-muted-foreground">Followers:</span>
           </div>
-          <span className="font-medium">{formatFollowers(influencer.follower_count)}</span>
+          <span className="font-medium">{formatFollowers(influencer.followerCount)}</span>
 
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-muted-foreground" />
             <span className="text-muted-foreground">Engagement:</span>
           </div>
-          <Badge variant="outline" className={getEngagementColor(influencer.engagement_rate)}>
-            {influencer.engagement_rate}%
+          <Badge variant="outline" className={getEngagementColor(Number(influencer.engagementRate))}>
+            {influencer.engagementRate}%
           </Badge>
         </div>
 
@@ -87,5 +83,5 @@ export function InfluencerCard({ influencer, isAssigned, onAssign, onUnassign, i
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

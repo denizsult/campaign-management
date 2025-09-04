@@ -1,65 +1,82 @@
 import { z } from "zod"
 import { router, protectedProcedure } from "../server"
 import { TRPCError } from "@trpc/server"
+import { eq, desc } from "drizzle-orm"
+import { influencers, campaignInfluencers } from "@/lib/db/schema"
 
 export const influencersRouter = router({
   // Get all influencers (available to all authenticated users)
   getAll: protectedProcedure.query(async ({ ctx }) => {
-    const { data, error } = await ctx.supabase
-      .from("influencers")
-      .select("*")
-      .order("follower_count", { ascending: false })
+    try {
+      const data = await ctx.db
+        .select()
+        .from(influencers)
+        .orderBy(desc(influencers.followerCount))
 
-    if (error) {
+      return data
+    } catch (error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch influencers",
       })
     }
-
-    return data
   }),
 
   // Get a single influencer by ID
   getById: protectedProcedure.input(z.object({ id: z.string().uuid() })).query(async ({ ctx, input }) => {
-    const { data, error } = await ctx.supabase.from("influencers").select("*").eq("id", input.id).single()
+    try {
+      const data = await ctx.db
+        .select()
+        .from(influencers)
+        .where(eq(influencers.id, input.id))
+        .limit(1)
 
-    if (error) {
+      if (data.length === 0) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Influencer not found",
+        })
+      }
+
+      return data[0]
+    } catch (error) {
+      if (error instanceof TRPCError) {
+        throw error
+      }
       throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Influencer not found",
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch influencer",
       })
     }
-
-    return data
   }),
 
   // Get influencers assigned to a specific campaign
   getByCampaign: protectedProcedure.input(z.object({ campaignId: z.string().uuid() })).query(async ({ ctx, input }) => {
-    const { data, error } = await ctx.supabase
-      .from("campaign_influencers")
-      .select(`
-          influencer_id,
-          assigned_at,
-          influencers (
-            id,
-            name,
-            follower_count,
-            engagement_rate
-          )
-        `)
-      .eq("campaign_id", input.campaignId)
+    try {
+      const data = await ctx.db
+        .select({
+          id: influencers.id,
+          name: influencers.name,
+          followerCount: influencers.followerCount,
+          engagementRate: influencers.engagementRate,
+          assignedAt: campaignInfluencers.assignedAt,
+        })
+        .from(campaignInfluencers)
+        .innerJoin(influencers, eq(campaignInfluencers.influencerId, influencers.id))
+        .where(eq(campaignInfluencers.campaignId, input.campaignId))
 
-    if (error) {
+      return data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        follower_count: item.followerCount,
+        engagement_rate: item.engagementRate,
+        assigned_at: item.assignedAt,
+      }))
+    } catch (error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch campaign influencers",
       })
     }
-
-    return data.map((item) => ({
-      ...item.influencers,
-      assigned_at: item.assigned_at,
-    }))
   }),
 })

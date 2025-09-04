@@ -10,16 +10,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { trpc } from "@/lib/trpc/client"
 import { Plus, Loader2 } from "lucide-react"
+import { Campaign } from "@/lib/db/schema"
 
 interface CampaignFormProps {
-  campaign?: {
-    id: string
-    title: string
-    description?: string
-    budget?: number
-    start_date?: string
-    end_date?: string
-  }
+  campaign?: Campaign
   onSuccess?: () => void
 }
 
@@ -29,11 +23,12 @@ export function CampaignForm({ campaign, onSuccess }: CampaignFormProps) {
     title: campaign?.title || "",
     description: campaign?.description || "",
     budget: campaign?.budget?.toString() || "",
-    startDate: campaign?.start_date || "",
-    endDate: campaign?.end_date || "",
+    startDate: campaign?.startDate || "",
+    endDate: campaign?.endDate || "",
   })
 
   const utils = trpc.useUtils()
+ 
   const createMutation = trpc.campaigns.create.useMutation({
     onSuccess: () => {
       utils.campaigns.getAll.invalidate()

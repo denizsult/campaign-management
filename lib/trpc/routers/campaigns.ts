@@ -30,7 +30,7 @@ export const campaignsRouter = router({
         .from(campaigns)
         .where(eq(campaigns.userId, ctx.user.id))
         .orderBy(desc(campaigns.createdAt))
-
+ 
       return data
     } catch (error) {
       throw new TRPCError({
@@ -70,64 +70,91 @@ export const campaignsRouter = router({
 
   // Create a new campaign
   create: protectedProcedure.input(createCampaignSchema).mutation(async ({ ctx, input }) => {
-    const { data, error } = await ctx.supabase
-      .from("campaigns")
-      .insert({
-        ...input,
-        user_id: ctx.user.id,
-        start_date: input.startDate || null,
-        end_date: input.endDate || null,
-      })
-      .select()
-      .single()
+    console.log(input);
 
-    if (error) {
+    try {
+      const data = await ctx.db
+        .insert(campaigns)
+        .values({
+          title: input.title,
+          description: input.description,
+          budget: input.budget?.toString(),
+          startDate: input.startDate,
+          endDate: input.endDate,
+          userId: ctx.user.id,
+        })
+        .returning()
+
+      return data[0]
+    } catch (error) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to create campaign",
       })
     }
-
-    return data
   }),
 
   // Update a campaign
   update: protectedProcedure.input(updateCampaignSchema).mutation(async ({ ctx, input }) => {
     const { id, ...updateData } = input
 
-    const { data, error } = await ctx.supabase
-      .from("campaigns")
-      .update({
-        ...updateData,
-        start_date: updateData.startDate || undefined,
-        end_date: updateData.endDate || undefined,
-      })
-      .eq("id", id)
-      .eq("user_id", ctx.user.id)
-      .select()
-      .single()
+    try {
+      const data = await ctx.db
+        .update(campaigns)
+        .set({
+          title: updateData.title,
+          description: updateData.description,
+          budget: updateData.budget?.toString(),
+          startDate: updateData.startDate,
+          endDate: updateData.endDate,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(campaigns.id, id), eq(campaigns.userId, ctx.user.id)))
+        .returning()
 
-    if (error) {
+      if (data.length === 0) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Campaign not found",
+        })
+      }
+
+      return data[0]
+    } catch (error) {
+      if (error instanceof TRPCError) {
+        throw error
+      }
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to update campaign",
       })
     }
-
-    return data
   }),
 
   // Delete a campaign
   delete: protectedProcedure.input(z.object({ id: z.string().uuid() })).mutation(async ({ ctx, input }) => {
-    const { error } = await ctx.supabase.from("campaigns").delete().eq("id", input.id).eq("user_id", ctx.user.id)
+    try {
+      const data = await ctx.db
+        .delete(campaigns)
+        .where(and(eq(campaigns.id, input.id), eq(campaigns.userId, ctx.user.id)))
+        .returning()
 
-    if (error) {
+      if (data.length === 0) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Campaign not found",
+        })
+      }
+
+      return { success: true }
+    } catch (error) {
+      if (error instanceof TRPCError) {
+        throw error
+      }
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to delete campaign",
       })
     }
-
-    return { success: true }
   }),
 })
